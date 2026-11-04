@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador: Humedal vs Filtro Casero</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8fafc;
+        }
+        canvas {
+            touch-action: none;
+            border-radius: 1rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-slate-800">
+
+    <!-- Encabezado -->
+    <header class="bg-gradient-to-r from-emerald-700 to-teal-800 text-white py-5 px-4 shadow-lg">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-2xl sm:text-3xl font-extrabold flex items-center justify-center gap-2">
+                <i class="fa-solid fa-droplet text-cyan-300"></i>
+                Misma idea, distinto tamaño
+            </h1>
+            <p class="text-emerald-100 text-xs sm:text-sm mt-1">
+                Compara cómo filtra el agua un <strong>Humedal Natural</strong> y un <strong>Filtro Casero de Botella</strong>.
+            </p>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-4xl mx-auto px-3 py-6 w-full grow flex flex-col gap-6">
+
+        <!-- SIMULADOR (PARTE SUPERIOR) -->
+        <section class="bg-white rounded-3xl p-4 sm:p-6 shadow-xl border border-slate-200 flex flex-col items-center">
+            
+            <!-- Selector de Modo -->
+            <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl w-full max-w-sm mb-4 border border-slate-200">
+                <button id="btnHumedal" onclick="setMode('humedal')" class="flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-emerald-600 text-white shadow-md">
+                    🌿 Humedal
+                </button>
+                <button id="btnBotella" onclick="setMode('botella')" class="flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900">
+                    🍾 Botella
+                </button>
+            </div>
+
+            <!-- Canvas de Simulación -->
+            <div class="relative w-full max-w-md aspect-[3/4] bg-slate-950 rounded-2xl overflow-hidden shadow-2xl border-2 border-slate-800">
+                <canvas id="simCanvas" class="w-full h-full block cursor-pointer" onclick="pourWater()"></canvas>
+
+                <!-- Leyenda de partículas -->
+                <div class="absolute bottom-2 right-2 bg-slate-900/90 backdrop-blur-md p-2 rounded-xl border border-slate-700 text-[10px] text-slate-200 space-y-1">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-800 inline-block"></span> Sólidos Gruesos
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> Químicos / Nutrientes
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Sedimento Fino
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span> Agua Limpia
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles Cortos -->
+            <div class="w-full max-w-md mt-4 grid grid-cols-3 gap-2">
+                <button onclick="pourWater()" class="py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl shadow text-xs sm:text-sm flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-bucket"></i> Verter
+                </button>
+                <button id="btnPlay" onclick="togglePlay()" class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow text-xs sm:text-sm flex items-center justify-center gap-1">
+                    <i id="playIcon" class="fa-solid fa-pause"></i> <span id="playText">Pausar</span>
+                </button>
+                <button onclick="resetSim()" class="py-2.5 bg-slate-600 hover:bg-slate-700 text-white font-bold rounded-xl shadow text-xs sm:text-sm flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-rotate-left"></i> Reiniciar
+                </button>
+            </div>
+        </section>
+
+        <!-- SECCIÓN INFORMATIVA Y TEORÍA (PARTE INFERIOR) -->
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-2xl shadow-md border border-slate-200">
+                <div class="text-2xl text-emerald-600 mb-1"><i class="fa-solid fa-filter"></i></div>
+                <h3 class="font-bold text-sm text-slate-800 mb-1">1. Filtración Física</h3>
+                <p class="text-slate-600 text-xs leading-relaxed">
+                    Al disminuir la velocidad del agua, los sólidos pesados caen y se atrapan mecánicamente entre poros de arena y piedras.
+                </p>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-md border border-slate-200">
+                <div class="text-2xl text-teal-600 mb-1"><i class="fa-solid fa-seedling"></i></div>
+                <h3 class="font-bold text-sm text-slate-800 mb-1">2. Fitorremediación</h3>
+                <p class="text-slate-600 text-xs leading-relaxed">
+                    Las raíces de las plantas absorben nitratos, fosfatos y metales pesados para crecer, purificando el agua químicamente.
+                </p>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-md border border-slate-200">
+                <div class="text-2xl text-cyan-600 mb-1"><i class="fa-solid fa-bacteria"></i></div>
+                <h3 class="font-bold text-sm text-slate-800 mb-1">3. Acción Microbiana</h3>
+                <p class="text-slate-600 text-xs leading-relaxed">
+                    Bacterias beneficiosas en la materia orgánica o carbón descomponen la materia contaminante en compuesto inofensivo.
+                </p>
+            </div>
+        </section>
+
+        <!-- TABLA COMPARATIVA DE CAPAS -->
+        <section class="bg-white rounded-2xl shadow-lg p-5 border border-slate-200">
+            <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-layer-group text-emerald-600"></i> Equivalencia Capa por Capa
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                            <th class="p-2.5 rounded-l-lg">Humedal Natural</th>
+                            <th class="p-2.5">Filtro de Botella</th>
+                            <th class="p-2.5 rounded-r-lg">Función</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-600">
+                        <tr>
+                            <td class="p-2.5 font-semibold text-emerald-800">Vegetación</td>
+                            <td class="p-2.5 font-semibold text-slate-700">Algodón / Fibra</td>
+                            <td class="p-2.5">Atrapa sólidos grandes y flotantes.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-emerald-800">Materia Orgánica</td>
+                            <td class="p-2.5 font-semibold text-slate-700">Carbón Activado</td>
+                            <td class="p-2.5">Absorbe químicos y quita malos olores.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-emerald-800">Arena Fina</td>
+                            <td class="p-2.5 font-semibold text-slate-700">Arena Fina</td>
+                            <td class="p-2.5">Filtra sedimentos diminutos.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-emerald-800">Piedras y Grava</td>
+                            <td class="p-2.5 font-semibold text-slate-700">Piedras / Grava</td>
+                            <td class="p-2.5">Sostén y paso libre del agua limpia.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JS ANIMACIÓN -->
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let mode = 'humedal';
+        let isRunning = true;
+        let particles = [];
+        let cleanDrops = [];
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+
+        function setMode(newMode) {
+            mode = newMode;
+            document.getElementById('btnHumedal').className = mode === 'humedal' 
+                ? "flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-emerald-600 text-white shadow-md"
+                : "flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900";
+            document.getElementById('btnBotella').className = mode === 'botella' 
+                ? "flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-emerald-600 text-white shadow-md"
+                : "flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900";
+            resetSim();
+        }
+
+        function togglePlay() {
+            isRunning = !isRunning;
+            document.getElementById('playIcon').className = isRunning ? "fa-solid fa-pause" : "fa-solid fa-play";
+            document.getElementById('playText').innerText = isRunning ? "Pausar" : "Reanudar";
+        }
+
+        function resetSim() {
+            particles = [];
+            cleanDrops = [];
+        }
+
+        function pourWater() {
+            for (let i = 0; i < 20; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        class Particle {
+            constructor() {
+                const w = canvas.width;
+                this.x = w * 0.25 + Math.random() * (w * 0.5);
+                this.y = 10;
+                this.vy = 1 + Math.random() * 1.2;
+                this.vx = (Math.random() - 0.5) * 0.4;
+                
+                const rand = Math.random();
+                if (rand < 0.35) {
+                    this.type = 'large';
+                    this.radius = 5;
+                    this.color = '#78350f';
+                } else if (rand < 0.7) {
+                    this.type = 'medium';
+                    this.radius = 3.5;
+                    this.color = '#34d399';
+                } else {
+                    this.type = 'fine';
+                    this.radius = 2.5;
+                    this.color = '#fbbf24';
+                }
+                this.stopped = false;
+            }
+
+            update() {
+                if (this.stopped) return;
+                this.y += this.vy;
+                this.x += this.vx;
+
+                const h = canvas.height;
+                // Colisiones/Atrapes por capa
+                if (this.type === 'large' && this.y > h * 0.2 && this.y < h * 0.35) {
+                    if (Math.random() < 0.08) this.stopped = true;
+                }
+                if (this.type === 'medium' && this.y > h * 0.35 && this.y < h * 0.5) {
+                    if (Math.random() < 0.08) this.stopped = true;
+                }
+                if (this.type === 'fine' && this.y > h * 0.5 && this.y < h * 0.65) {
+                    if (Math.random() < 0.08) this.stopped = true;
+                }
+
+                // Generar agua pura al pasar
+                if (this.y > h * 0.65 && !this.stopped) {
+                    this.stopped = true;
+                    if (Math.random() < 0.5) {
+                        cleanDrops.push(new CleanDrop(this.x, h * 0.68));
+                    }
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        class CleanDrop {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vy = 1.5 + Math.random();
+            }
+            update() {
+                this.y += this.vy;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#38bdf8';
+                ctx.fill();
+            }
+        }
+
+        function drawLayers() {
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.fillStyle = '#0284c7';
+            ctx.fillRect(w * 0.2, 0, w * 0.6, h * 0.15);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 11px system-ui';
+            ctx.fillText('Entrada de Agua Turbia', w * 0.25, 20);
+
+            const layersData = [
+                { name: mode === 'humedal' ? '1. Vegetación' : '1. Algodón', color: 'rgba(34, 197, 94, 0.4)', top: h * 0.15, bottom: h * 0.3 },
+                { name: mode === 'humedal' ? '2. Materia Orgánica' : '2. Carbón Activado', color: 'rgba(51, 65, 85, 0.5)', top: h * 0.3, bottom: h * 0.45 },
+                { name: mode === 'humedal' ? '3. Arena Fina' : '3. Arena Fina', color: 'rgba(217, 119, 6, 0.4)', top: h * 0.45, bottom: h * 0.6 },
+                { name: mode === 'humedal' ? '4. Piedras y Grava' : '4. Piedras y Grava', color: 'rgba(100, 116, 139, 0.5)', top: h * 0.6, bottom: h * 0.75 }
+            ];
+
+            layersData.forEach(l => {
+                ctx.fillStyle = l.color;
+                ctx.fillRect(w * 0.2, l.top, w * 0.6, l.bottom - l.top);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(l.name, w * 0.23, l.top + (l.bottom - l.top) / 2 + 4);
+            });
+
+            // Base de Recolección
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+            ctx.fillRect(w * 0.2, h * 0.78, w * 0.6, h * 0.18);
+            ctx.strokeStyle = '#38bdf8';
+            ctx.strokeRect(w * 0.2, h * 0.78, w * 0.6, h * 0.18);
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillText('Recipiente: Agua Filtrada', w * 0.28, h * 0.88);
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawLayers();
+
+            if (isRunning) {
+                if (Math.random() < 0.3) particles.push(new Particle());
+
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    particles[i].update();
+                    particles[i].draw();
+                }
+
+                for (let i = cleanDrops.length - 1; i >= 0; i--) {
+                    cleanDrops[i].update();
+                    cleanDrops[i].draw();
+                    if (cleanDrops[i].y > canvas.height * 0.94) cleanDrops.splice(i, 1);
+                }
+            } else {
+                particles.forEach(p => p.draw());
+                cleanDrops.forEach(d => d.draw());
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        window.onload = () => {
+            resizeCanvas();
+            animate();
+        };
+        window.onresize = resizeCanvas;
+    </script>
+</body>
+</html>
