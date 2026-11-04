@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador: Humedal vs Filtro Casero</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        canvas {
+            border-radius: 0.75rem;
+            background: linear-gradient(to bottom, #e0f2fe, #f0fdf4);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+
+    <!-- Encabezado -->
+    <header class="bg-emerald-700 text-white py-6 shadow-md mb-6">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <h1 class="text-3xl font-bold">Misma idea, distinto tamaño</h1>
+            <p class="text-emerald-100 text-lg mt-1">Cómo el humedal natural y el filtro casero purifican el agua capa por capa</p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 space-y-8">
+
+        <!-- SIMULACIÓN INTERACTIVA (PARTE SUPERIOR) -->
+        <section class="bg-white rounded-2xl shadow-xl p-6 border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <span>🌊</span> Simulación de Filtración en Tiempo Real
+                    </h2>
+                    <p class="text-slate-500 text-sm">Observá cómo las partículas contaminantes son atrapadas gradualmente según la densidad de cada capa.</p>
+                </div>
+                
+                <!-- Selector de Modo -->
+                <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl self-start md:self-auto border border-slate-200">
+                    <button id="btnHumedal" onclick="setMode('humedal')" class="px-4 py-2 rounded-lg font-medium text-sm transition-all bg-emerald-600 text-white shadow-sm">
+                        🌿 Humedal Natural
+                    </button>
+                    <button id="btnBotella" onclick="setMode('botella')" class="px-4 py-2 rounded-lg font-medium text-sm transition-all text-slate-600 hover:text-slate-900">
+                        🍾 Filtro Casero (Botella)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Canvas de Simulación -->
+            <div class="relative w-full flex justify-center bg-slate-900 rounded-xl overflow-hidden shadow-inner p-2">
+                <canvas id="simCanvas" width="800" height="520" class="w-full max-w-3xl h-auto block"></canvas>
+            </div>
+
+            <!-- Panel de Control Corto -->
+            <div class="mt-6 flex flex-wrap items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div class="flex items-center gap-3">
+                    <button id="btnPlay" onclick="togglePlay()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-5 rounded-lg text-sm transition-colors flex items-center gap-2">
+                        <span>Pausar</span>
+                    </button>
+                    <button onclick="resetSim()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-4 rounded-lg text-sm transition-colors">
+                        Reiniciar
+                    </button>
+                </div>
+
+                <!-- Leyenda de partículas -->
+                <div class="flex flex-wrap items-center gap-4 text-xs font-semibold">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-amber-800 inline-block"></span> Sólidos Gruesos
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Nutrientes / Químicos
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> Sedimento Fino
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-sky-400 inline-block"></span> Agua Purificada
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN DE INFORMACIÓN Y TEORÍA (PARTE INFERIOR) -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-100 border-t-4 border-t-emerald-500">
+                <div class="text-3xl mb-2">🌿</div>
+                <h3 class="font-bold text-lg text-slate-800 mb-1">Filtración Física y Sedimentación</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Al reducir la velocidad del agua, los sólidos pesados caen por gravedad y el resto queda retenido físicamente entre los poros del sustrato y las raíces.
+                </p>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-100 border-t-4 border-t-teal-500">
+                <div class="text-3xl mb-2">🌱</div>
+                <h3 class="font-bold text-lg text-slate-800 mb-1">Fitorremediación (Plantas)</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Las raíces absorben excesos de nitrógeno, fósforo y metales pesados. Además, oxigenan el subsuelo permitiendo la vida microbiológica.
+                </p>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-100 border-t-4 border-t-cyan-500">
+                <div class="text-3xl mb-2">🦠</div>
+                <h3 class="font-bold text-lg text-slate-800 mb-1">Biodegradación Microbiana</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Las capas de materia orgánica y grava albergan bacterias benéficas que transforman los contaminantes en compuestos inofensivos.
+                </p>
+            </div>
+        </section>
+
+        <!-- TABLA DE CORRESPONDENCIA DE CAPAS -->
+        <section class="bg-white rounded-2xl shadow-xl p-6 border border-slate-200">
+            <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <span>📊</span> Equivalencia Capa por Capa
+            </h3>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 text-sm">
+                            <th class="p-3 rounded-l-lg">Capa del Humedal Natural</th>
+                            <th class="p-3">Equivalente en Filtro Casero</th>
+                            <th class="p-3 rounded-r-lg">Mecanismo y Función Principal</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm text-slate-600">
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-semibold text-emerald-800">1. Plantas acuáticas y vegetación</td>
+                            <td class="p-3 font-semibold text-slate-700">Algodón / Fibra sintética</td>
+                            <td class="p-3">Retiene sólidos flotantes grandes y partículas ultra finas al final.</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-semibold text-emerald-800">2. Materia orgánica (lodo y humus)</td>
+                            <td class="p-3 font-semibold text-slate-700">Carbón Activado</td>
+                            <td class="p-3">Descompone químicos, absorbe malos olores y fija pesticidas.</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-semibold text-emerald-800">3. Capa de Arena</td>
+                            <td class="p-3 font-semibold text-slate-700">Arena fina y media</td>
+                            <td class="p-3">Atrapa sedimentos finos, microorganismos y microplásticos.</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-semibold text-emerald-800">4. Piedras y Grava</td>
+                            <td class="p-3 font-semibold text-slate-700">Piedras / Cantos rodados</td>
+                            <td class="p-3">Permite el paso rápido del agua y sostiene las capas superiores.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TARJETAS DE MEJORA DE PARÁMETROS -->
+        <section class="bg-gradient-to-r from-emerald-800 to-teal-900 text-white rounded-2xl p-6 shadow-xl">
+            <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                <span>💧</span> Parámetros de Calidad del Agua Mejorados
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mt-4">
+                <div class="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10">
+                    <div class="text-emerald-300 font-bold text-lg mb-1">Turbidez (>90%)</div>
+                    <p class="text-emerald
